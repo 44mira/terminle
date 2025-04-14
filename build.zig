@@ -1,5 +1,5 @@
 const std = @import("std");
-const ArrayList = std.ArrayList;
+const Build = std.Build;
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -42,7 +42,7 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
-    const modules = [_]*std.Build.Module{ attempt_mod, exe_mod };
+    const modules = [_]*Build.Module{ attempt_mod, exe_mod };
 
     const test_step = b.step("test", "Run unit tests");
     for (modules) |module| {
