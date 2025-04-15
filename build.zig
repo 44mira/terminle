@@ -17,46 +17,62 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const display_mod = b.createModule(.{
+        .root_source_file = b.path("src/display.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
+
+    const modules = [_]*Build.Module{
+        attempt_mod,
+        colorize_mod,
+        display_mod,
+        exe_mod,
+    };
+    const libraries = [_]?[]const u8{ "attempt", "colorize", "display", null };
+
     exe_mod.addImport("attempt", attempt_mod);
     exe_mod.addImport("colorize", colorize_mod);
+    exe_mod.addImport("display", display_mod);
 
-    const attempt_lib = b.addLibrary(.{
-        .linkage = .static,
-        .name = "attempt",
-        .root_module = attempt_mod,
-    });
+    colorize_mod.addImport("attempt", attempt_mod);
 
-    const colorize_lib = b.addLibrary(.{
-        .linkage = .static,
-        .name = "colorize",
-        .root_module = colorize_mod,
-    });
+    display_mod.addImport("attempt", attempt_mod);
+    display_mod.addImport("colorize", colorize_mod);
+
+    for (modules, libraries) |module, lib_name| {
+        if (module == exe_mod) continue;
+
+        const library = b.addLibrary(.{
+            .linkage = .static,
+            .name = lib_name.?,
+            .root_module = attempt_mod,
+        });
+
+        b.installArtifact(library);
+    }
 
     const exe = b.addExecutable(.{
         .name = "terminle",
         .root_module = exe_mod,
     });
 
-    b.installArtifact(attempt_lib);
-    b.installArtifact(colorize_lib);
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
-
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
-
     if (b.args) |args| {
         run_cmd.addArgs(args);
     }
 
-    const modules = [_]*Build.Module{ attempt_mod, colorize_mod, exe_mod };
+    const run_step = b.step("run", "Run the app");
+    run_step.dependOn(&run_cmd.step);
 
     const test_step = b.step("test", "Run unit tests");
     for (modules) |module| {
