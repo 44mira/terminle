@@ -1,5 +1,5 @@
 const std = @import("std");
-const attempt = @import("./attempt.zig");
+const attempt = @import("attempt");
 
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
@@ -9,14 +9,15 @@ const Correctness = attempt.Correctness;
 fn applyColor(allocator: Allocator, color: Correctness, letter: u8) ![]const u8 {
     var result = std.ArrayList(u8).init(allocator);
 
+    try result.appendSlice("\x1b[");
     const fmt = switch (color) {
-        Correctness.Gray => "\x1b[2m",
-        Correctness.Green => "\x1b[1;32m",
-        Correctness.Yellow => "\x1b[1;33m",
+        Correctness.Gray => "2m ",
+        Correctness.Green => "1;32m ",
+        Correctness.Yellow => "1;33m ",
     };
     try result.appendSlice(fmt);
     try result.append(letter);
-    try result.appendSlice("\x1b[0m");
+    try result.appendSlice(" \x1b[0m");
 
     return result.items;
 }
@@ -31,7 +32,7 @@ fn applyColorString(allocator: Allocator, correctness: []const Correctness, word
     return @ptrCast(result.items);
 }
 
-pub fn colorize(allocator: Allocator, comptime a: *const Attempt) ![:0]const u8 {
+pub fn colorize(allocator: Allocator, a: *const Attempt) ![:0]const u8 {
     return applyColorString(allocator, &a.correctness, a.word);
 }
 
@@ -66,23 +67,23 @@ test "applyColor tests" {
     const allocator = arena.allocator();
 
     try testing.expectEqualStrings(
-        "\x1b[2mA\x1b[0m",
+        "\x1b[2m A \x1b[0m",
         try applyColor(allocator, Correctness.Gray, 'A'),
     );
 
     try testing.expectEqualStrings(
-        "\x1b[1;32mB\x1b[0m",
+        "\x1b[1;32m B \x1b[0m",
         try applyColor(allocator, Correctness.Green, 'B'),
     );
 
     try testing.expectEqualStrings(
-        "\x1b[1;33mC\x1b[0m",
+        "\x1b[1;33m C \x1b[0m",
         try applyColor(allocator, Correctness.Yellow, 'C'),
     );
 
     const correctness = [_]Correctness{ Correctness.Gray, Correctness.Green, Correctness.Yellow };
     try testing.expectEqualStrings(
-        "\x1b[2mA\x1b[0m\x1b[1;32mB\x1b[0m\x1b[1;33mC\x1b[0m",
+        "\x1b[2m A \x1b[0m\x1b[1;32m B \x1b[0m\x1b[1;33m C \x1b[0m",
         try applyColorString(allocator, @constCast(&correctness), "ABC"),
     );
 }
