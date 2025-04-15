@@ -35,7 +35,6 @@ pub fn build(b: *std.Build) void {
         display_mod,
         exe_mod,
     };
-    const libraries = [_]?[]const u8{ "attempt", "colorize", "display", null };
 
     exe_mod.addImport("attempt", attempt_mod);
     exe_mod.addImport("colorize", colorize_mod);
@@ -46,12 +45,14 @@ pub fn build(b: *std.Build) void {
     display_mod.addImport("attempt", attempt_mod);
     display_mod.addImport("colorize", colorize_mod);
 
-    for (modules, libraries) |module, lib_name| {
+    for (modules) |module| {
         if (module == exe_mod) continue;
+
+        const lib_name = std.fs.path.basename(module.root_source_file.?.src_path.sub_path);
 
         const library = b.addLibrary(.{
             .linkage = .static,
-            .name = lib_name.?,
+            .name = lib_name,
             .root_module = attempt_mod,
         });
 
