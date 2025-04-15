@@ -72,6 +72,8 @@ pub const Evaluator = struct {
         return Attempt.new(guess, correctness);
     }
 
+    /// Validates whether a word is valid or not.
+    /// A valid word is all uppercase, length is same as `WORD_LENGTH`, and is alphabetic.
     fn validateWord(comptime E: anytype, word: []const u8) E!void {
         if (E != EvaluateError_Actual and E != EvaluateError_Guess) unreachable;
 

@@ -6,6 +6,7 @@ const Allocator = std.mem.Allocator;
 const Attempt = attempt.Attempt;
 const Correctness = attempt.Correctness;
 
+/// Wrap a character in its corresponding ANSI Escape Sequence to display color.
 fn applyColor(allocator: Allocator, color: Correctness, letter: u8) ![]const u8 {
     var result = std.ArrayList(u8).init(allocator);
 
@@ -22,6 +23,7 @@ fn applyColor(allocator: Allocator, color: Correctness, letter: u8) ![]const u8 
     return result.items;
 }
 
+/// Maps `applyColor` to a string.
 fn applyColorString(allocator: Allocator, correctness: []const Correctness, word: [:0]const u8) ![:0]const u8 {
     var result = std.ArrayList(u8).init(allocator);
 
@@ -32,6 +34,7 @@ fn applyColorString(allocator: Allocator, correctness: []const Correctness, word
     return @ptrCast(result.items);
 }
 
+/// A specialized call to `applyColorString` that takes in an `Attempt`.
 pub fn colorize(allocator: Allocator, a: *const Attempt) ![:0]const u8 {
     return applyColorString(allocator, &a.correctness, a.word);
 }
