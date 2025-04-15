@@ -9,16 +9,14 @@ const Correctness = attempt.Correctness;
 /// Wrap a character in its corresponding ANSI Escape Sequence to display color.
 fn applyColor(allocator: Allocator, color: Correctness, letter: u8) ![]const u8 {
     var result = std.ArrayList(u8).init(allocator);
+    const writer = result.writer();
 
-    try result.appendSlice("\x1b[");
     const fmt = switch (color) {
-        Correctness.Gray => "2m ",
-        Correctness.Green => "1;32m ",
-        Correctness.Yellow => "1;33m ",
+        Correctness.Gray => "2m",
+        Correctness.Green => "1;32m",
+        Correctness.Yellow => "1;33m",
     };
-    try result.appendSlice(fmt);
-    try result.append(letter);
-    try result.appendSlice(" \x1b[0m");
+    try writer.print("\x1b[{s} {c} \x1b[0m", .{ fmt, letter });
 
     return result.items;
 }
