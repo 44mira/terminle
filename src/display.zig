@@ -14,6 +14,8 @@ pub const ROUND_COUNT = 6;
 /// Writes the styled output into the provided `writer`.
 /// The output has `ROUND_COUNT` rows, and uses an []?Attempt type to determine
 /// empty rows.
+///
+/// `writer` is expected to be of some `io.Writer` type.
 pub fn display(allocator: Allocator, attempts: []const ?Attempt, writer: anytype) !void {
     if (!@hasDecl(@TypeOf(writer), "write") or !@hasDecl(@TypeOf(writer), "print")) {
         return DisplayError.InvalidWriter;
