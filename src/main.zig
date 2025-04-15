@@ -1,10 +1,11 @@
 const std = @import("std");
+const io = std.io;
+
 const Attempt = @import("attempt").Attempt;
+const Evaluator = @import("attempt").Evaluator;
 const colorize = @import("colorize").colorize;
 const display = @import("display").display;
 const ROUND_COUNT = @import("display").ROUND_COUNT;
-
-const io = std.io;
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -16,11 +17,12 @@ pub fn main() !void {
     var buf = io.bufferedWriter(out);
     const writer = buf.writer();
 
+    const word = Evaluator.new("ASHEN");
     const attempts = [ROUND_COUNT]?Attempt{
-        try Attempt.evaluateGuess("TRUMP", "HUMPS"),
-        try Attempt.evaluateGuess("TRUMP", "PLUMP"),
-        try Attempt.evaluateGuess("TRUMP", "TRUMP"),
-        null,
+        try word.evaluate("CRANE"),
+        try word.evaluate("ANGEL"),
+        try word.evaluate("ASPEN"),
+        try word.evaluate("ASHEN"),
         null,
         null,
     };

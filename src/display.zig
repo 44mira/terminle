@@ -3,6 +3,7 @@ const io = std.io;
 const testing = std.testing;
 
 const Attempt = @import("attempt").Attempt;
+const Evaluator = @import("attempt").Evaluator;
 const colorize = @import("colorize").colorize;
 const Allocator = std.mem.Allocator;
 
@@ -38,10 +39,11 @@ test "display test" {
     var list = std.ArrayList(u8).init(allocator);
     const w = list.writer();
 
+    const eval = Evaluator.new("TRUMP");
     const attempts = [ROUND_COUNT]?Attempt{
-        try Attempt.evaluateGuess("TRUMP", "HUMPS"),
-        try Attempt.evaluateGuess("TRUMP", "PLUMP"),
-        try Attempt.evaluateGuess("TRUMP", "TRUMP"),
+        try eval.evaluate("HUMPS"),
+        try eval.evaluate("PLUMP"),
+        try eval.evaluate("TRUMP"),
         null,
         null,
         null,

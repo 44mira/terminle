@@ -5,13 +5,13 @@ const Allocator = std.mem.Allocator;
 
 pub const WORD_LENGTH = 5;
 
-pub const AttemptError_Actual = error{
+pub const EvaluateError_Actual = error{
     NonAlphabetic,
     InvalidLength,
     IsLowercase,
 };
 
-pub const AttemptError_Guess = error{
+pub const EvaluateError_Guess = error{
     NonAlphabetic,
     InvalidLength,
     IsLowercase,
@@ -27,22 +27,30 @@ pub const Attempt = struct {
     word: [:0]const u8,
     correctness: [WORD_LENGTH]Correctness = .{.Gray} ** WORD_LENGTH,
 
+    pub fn new(word: [:0]const u8, correctness: [WORD_LENGTH]Correctness) Attempt {
+        return Attempt{ .word = word, .correctness = correctness };
+    }
+};
+
+pub const Evaluator = struct {
+    actual: [:0]const u8,
+
     /// Returns an Attempt based on an `actual` word and a `guess` word.
     /// Can error on invalid `actual` or `guess`, or if allocations fail.
-    pub fn evaluateGuess(actual: [:0]const u8, guess: [:0]const u8) !Attempt {
+    pub fn evaluate(self: *const Evaluator, guess: [:0]const u8) !Attempt {
         // error check
-        try validateWord(AttemptError_Actual, actual);
-        try validateWord(AttemptError_Guess, guess);
+        try validateWord(EvaluateError_Actual, self.actual);
+        try validateWord(EvaluateError_Guess, guess);
 
         var bag = [_]i4{0} ** 26;
         var correctness = [_]Correctness{.Gray} ** WORD_LENGTH;
 
-        for (actual) |a| {
+        for (self.actual) |a| {
             bag[a - 'A'] += 1;
         }
 
         // prioritize green
-        for (actual, guess, 0..) |a, g, i| {
+        for (self.actual, guess, 0..) |a, g, i| {
             const slot: u8 = g - 'A';
 
             if (a == g) {
@@ -65,7 +73,7 @@ pub const Attempt = struct {
     }
 
     fn validateWord(comptime E: anytype, word: []const u8) E!void {
-        if (E != AttemptError_Actual and E != AttemptError_Guess) unreachable;
+        if (E != EvaluateError_Actual and E != EvaluateError_Guess) unreachable;
 
         if (word.len != WORD_LENGTH) {
             return E.InvalidLength;
@@ -76,8 +84,8 @@ pub const Attempt = struct {
         }
     }
 
-    pub fn new(word: [:0]const u8, correctness: [WORD_LENGTH]Correctness) Attempt {
-        return Attempt{ .word = word, .correctness = correctness };
+    pub fn new(actual: [:0]const u8) Evaluator {
+        return .{ .actual = actual };
     }
 };
 
@@ -90,51 +98,52 @@ test "guess evaluation check" {
     var expected: Attempt = undefined;
     var attempt: Attempt = undefined;
 
-    attempt = try Attempt.evaluateGuess("HELLO", "HELLO");
+    attempt = try Evaluator.new("HELLO").evaluate("HELLO");
     expected = Attempt.new("HELLO", .{.Green} ** 5);
     try expectEqualAttempt(&expected, &attempt);
 
-    attempt = try Attempt.evaluateGuess("HELLO", "RATTY");
+    attempt = try Evaluator.new("HELLO").evaluate("RATTY");
     expected = Attempt.new("RATTY", .{.Gray} ** 5);
     try expectEqualAttempt(&expected, &attempt);
 
-    attempt = try Attempt.evaluateGuess("BOATS", "TAOSB");
+    attempt = try Evaluator.new("BOATS").evaluate("TAOSB");
     expected = Attempt.new("TAOSB", .{.Yellow} ** 5);
     try expectEqualAttempt(&expected, &attempt);
 
-    attempt = try Attempt.evaluateGuess("SILLY", "LILLY");
+    attempt = try Evaluator.new("SILLY").evaluate("LILLY");
     expected = Attempt.new("LILLY", .{.Gray} ++ .{.Green} ** 4);
     try expectEqualAttempt(&expected, &attempt);
 }
 
 test "error cases" {
     try testing.expectError(
-        AttemptError_Actual.InvalidLength,
-        Attempt.evaluateGuess("invalid", "irrelevant"),
+        EvaluateError_Actual.InvalidLength,
+        Evaluator.new("invalid").evaluate("irrelevant"),
     );
 
     try testing.expectError(
-        AttemptError_Actual.NonAlphabetic,
-        Attempt.evaluateGuess("12345", "irrelevant"),
+        EvaluateError_Actual.NonAlphabetic,
+        Evaluator.new("12345").evaluate("irrelevant"),
     );
 
     try testing.expectError(
-        AttemptError_Actual.IsLowercase,
-        Attempt.evaluateGuess("hello", "irrelevant"),
+        EvaluateError_Actual.IsLowercase,
+        Evaluator.new("hello").evaluate("irrelevant"),
+    );
+
+    const eval = Evaluator.new("HELLO");
+    try testing.expectError(
+        EvaluateError_Guess.IsLowercase,
+        eval.evaluate("hello"),
     );
 
     try testing.expectError(
-        AttemptError_Guess.IsLowercase,
-        Attempt.evaluateGuess("HELLO", "hello"),
+        EvaluateError_Guess.InvalidLength,
+        eval.evaluate("helloo"),
     );
 
     try testing.expectError(
-        AttemptError_Guess.InvalidLength,
-        Attempt.evaluateGuess("HELLO", "helloo"),
-    );
-
-    try testing.expectError(
-        AttemptError_Guess.NonAlphabetic,
-        Attempt.evaluateGuess("HELLO", "HI2U2"),
+        EvaluateError_Guess.NonAlphabetic,
+        eval.evaluate("HI2U2"),
     );
 }
