@@ -3,7 +3,7 @@ const testing = std.testing;
 const ascii = std.ascii;
 const Allocator = std.mem.Allocator;
 
-const WORD_LENGTH = 5;
+pub const WORD_LENGTH = 5;
 
 pub const AttemptError_Actual = error{
     NonAlphabetic,
@@ -61,7 +61,7 @@ pub const Attempt = struct {
             }
         }
 
-        return Attempt{ .word = guess, .correctness = correctness };
+        return Attempt.new(guess, correctness);
     }
 
     fn validateWord(comptime E: anytype, word: []const u8) E!void {
@@ -75,6 +75,10 @@ pub const Attempt = struct {
             if (ascii.isLower(c)) return E.IsLowercase;
         }
     }
+
+    pub fn new(word: [:0]const u8, correctness: [WORD_LENGTH]Correctness) Attempt {
+        return Attempt{ .word = word, .correctness = correctness };
+    }
 };
 
 fn expectEqualAttempt(expected: *const Attempt, actual: *const Attempt) !void {
@@ -87,19 +91,19 @@ test "guess evaluation check" {
     var attempt: Attempt = undefined;
 
     attempt = try Attempt.evaluateGuess("HELLO", "HELLO");
-    expected = Attempt{ .word = "HELLO", .correctness = .{.Green} ** 5 };
+    expected = Attempt.new("HELLO", .{.Green} ** 5);
     try expectEqualAttempt(&expected, &attempt);
 
     attempt = try Attempt.evaluateGuess("HELLO", "RATTY");
-    expected = Attempt{ .word = "RATTY", .correctness = .{.Gray} ** 5 };
+    expected = Attempt.new("RATTY", .{.Gray} ** 5);
     try expectEqualAttempt(&expected, &attempt);
 
     attempt = try Attempt.evaluateGuess("BOATS", "TAOSB");
-    expected = Attempt{ .word = "TAOSB", .correctness = .{.Yellow} ** 5 };
+    expected = Attempt.new("TAOSB", .{.Yellow} ** 5);
     try expectEqualAttempt(&expected, &attempt);
 
     attempt = try Attempt.evaluateGuess("SILLY", "LILLY");
-    expected = Attempt{ .word = "LILLY", .correctness = .{.Gray} ++ .{.Green} ** 4 };
+    expected = Attempt.new("LILLY", .{.Gray} ++ .{.Green} ** 4);
     try expectEqualAttempt(&expected, &attempt);
 }
 

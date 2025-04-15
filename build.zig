@@ -11,17 +11,30 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const colorize_mod = b.createModule(.{
+        .root_source_file = b.path("src/colorize.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
     exe_mod.addImport("attempt", attempt_mod);
+    exe_mod.addImport("colorize", colorize_mod);
 
     const attempt_lib = b.addLibrary(.{
         .linkage = .static,
         .name = "attempt",
         .root_module = attempt_mod,
+    });
+
+    const colorize_lib = b.addLibrary(.{
+        .linkage = .static,
+        .name = "colorize",
+        .root_module = colorize_mod,
     });
 
     const exe = b.addExecutable(.{
@@ -30,6 +43,7 @@ pub fn build(b: *std.Build) void {
     });
 
     b.installArtifact(attempt_lib);
+    b.installArtifact(colorize_lib);
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
@@ -42,7 +56,7 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
-    const modules = [_]*Build.Module{ attempt_mod, exe_mod };
+    const modules = [_]*Build.Module{ attempt_mod, colorize_mod, exe_mod };
 
     const test_step = b.step("test", "Run unit tests");
     for (modules) |module| {
