@@ -23,6 +23,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const input_mod = b.createModule(.{
+        .root_source_file = b.path("src/input.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -33,17 +39,21 @@ pub fn build(b: *std.Build) void {
         attempt_mod,
         colorize_mod,
         display_mod,
+        input_mod,
         exe_mod,
     };
 
     exe_mod.addImport("attempt", attempt_mod);
     exe_mod.addImport("colorize", colorize_mod);
     exe_mod.addImport("display", display_mod);
+    exe_mod.addImport("input", input_mod);
 
     colorize_mod.addImport("attempt", attempt_mod);
 
     display_mod.addImport("attempt", attempt_mod);
     display_mod.addImport("colorize", colorize_mod);
+
+    input_mod.addImport("attempt", attempt_mod);
 
     for (modules) |module| {
         if (module == exe_mod) continue;
