@@ -5,6 +5,8 @@ const Allocator = std.mem.Allocator;
 
 pub const WORD_LENGTH = 5;
 
+const WORDLIST = @embedFile("./wordlist.txt");
+
 pub const EvaluateError_Actual = error{
     NonAlphabetic,
     InvalidLength,
@@ -88,6 +90,20 @@ pub const Evaluator = struct {
 
     pub fn new(actual: [:0]const u8) Evaluator {
         return .{ .actual = actual };
+    }
+
+    pub fn newRand(allocator: Allocator) !Evaluator {
+        // hard coded because iterating for length is too much of a performance hit
+        const wordlist_len: u32 = 10657;
+        var wordlist = std.mem.tokenizeScalar(u8, WORDLIST, '\n');
+        var word_idx = std.crypto.random.uintLessThan(u64, wordlist_len);
+
+        while (word_idx > 0) : (word_idx -= 1) {
+            _ = wordlist.next();
+        }
+
+        const word = try std.ascii.allocUpperString(allocator, wordlist.next().?);
+        return Evaluator.new(@ptrCast(word));
     }
 };
 
