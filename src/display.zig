@@ -36,6 +36,18 @@ pub fn display(allocator: Allocator, attempts: []const ?Attempt, writer: anytype
     try writer.writeAll("┗" ++ "━" ** 17 ++ "┛\n");
 }
 
+pub fn displayInputBox(writer: anytype, bufW: anytype) !void {
+    const bar = "═" ++ "━" ** 5 ++ "─" ** 4 ++ "┄" ** 3 ++ "┈" ** 4 ++ "\n";
+
+    try writer.writeAll("┌" ++ bar);
+    try writer.writeAll("║ \n");
+    try writer.writeAll("└" ++ bar);
+    try bufW.flush();
+
+    try writer.writeAll("\x1b[2F\x1b[2C");
+    try bufW.flush();
+}
+
 test "display test" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();
