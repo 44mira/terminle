@@ -54,8 +54,11 @@ fn gameloop(
 
         if (attempts[i] != null)
             i += 1;
-        try bufW.flush();
     }
+
+    try writer.writeAll("\x1b[H\x1b[2J");
+    try display.display(allocator, &attempts, writer);
+    try bufW.flush();
 
     if (winFlag) {
         try writer.writeAll("\n\nYOU WIN!\n");
