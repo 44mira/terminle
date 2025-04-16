@@ -15,7 +15,7 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
-    const word = try Evaluator.newRand(allocator);
+    const word = try Evaluator.newRand();
 
     try gameloop(allocator, word);
 }

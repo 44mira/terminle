@@ -5,18 +5,20 @@ const Allocator = std.mem.Allocator;
 
 pub const WORD_LENGTH = 5;
 
-const WORDLIST = @embedFile("./wordlist.txt");
+pub var WORDLIST = std.mem.tokenizeScalar(u8, @embedFile("./wordlist.txt"), '\n');
 
 pub const EvaluateError_Actual = error{
     NonAlphabetic,
     InvalidLength,
     IsLowercase,
+    InvalidWord,
 };
 
 pub const EvaluateError_Guess = error{
     NonAlphabetic,
     InvalidLength,
     IsLowercase,
+    InvalidWord,
 };
 
 pub const Correctness = enum {
@@ -80,11 +82,27 @@ pub const Evaluator = struct {
     /// Validates whether a word is valid or not.
     /// A valid word is all uppercase, length is same as `WORD_LENGTH`, and is alphabetic.
     fn validateWord(comptime E: anytype, word: []const u8) E!void {
+        WORDLIST.reset();
+
         if (E != EvaluateError_Actual and E != EvaluateError_Guess) unreachable;
 
         if (word.len != WORD_LENGTH) {
             return E.InvalidLength;
         }
+
+        var flag: bool = false;
+        while (WORDLIST.peek() != null) : (_ = WORDLIST.next()) {
+            const validword = WORDLIST.peek().?;
+            if (std.mem.eql(u8, validword, word)) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag) {
+            return E.InvalidWord;
+        }
+
         for (word) |c| {
             if (!ascii.isAlphabetic(c)) return E.NonAlphabetic;
             if (ascii.isLower(c)) return E.IsLowercase;
@@ -95,17 +113,16 @@ pub const Evaluator = struct {
         return .{ .actual = actual };
     }
 
-    pub fn newRand(allocator: Allocator) !Evaluator {
+    pub fn newRand() !Evaluator {
         // hard coded because iterating for length is too much of a performance hit
         const wordlist_len: u32 = 10657;
-        var wordlist = std.mem.tokenizeScalar(u8, WORDLIST, '\n');
         var word_idx = std.crypto.random.uintLessThan(u64, wordlist_len);
 
         while (word_idx > 0) : (word_idx -= 1) {
-            _ = wordlist.next();
+            _ = WORDLIST.next();
         }
 
-        const word = try std.ascii.allocUpperString(allocator, wordlist.next().?);
+        const word = WORDLIST.next().?;
         return Evaluator.new(@ptrCast(word));
     }
 };
