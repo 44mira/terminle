@@ -1,5 +1,7 @@
 # TERMINLE
 
+![image](https://github.com/user-attachments/assets/0961d67c-86f6-46d1-9959-fed722ce9ab3)
+
 This was made as a project to practice [`zig`](https://ziglang.org/) with. So most, if not all, of the code choices made are pretty *naive*.
 
 > Feel free to peruse the code, but do be warned, by the last commit I just gave up on maintainability to finish it before my motivation ran out.
