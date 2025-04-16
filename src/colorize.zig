@@ -1,3 +1,6 @@
+//! Create colorized string using `applyColor`, a helper function for wrapping
+//! characters in their corresponding ANSI escape sequences.
+
 const std = @import("std");
 const attempt = @import("attempt");
 

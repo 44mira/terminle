@@ -1,3 +1,5 @@
+//! Module for creating `Attempt`s and validating words.
+
 const std = @import("std");
 const testing = std.testing;
 const ascii = std.ascii;

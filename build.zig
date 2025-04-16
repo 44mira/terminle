@@ -36,11 +36,11 @@ pub fn build(b: *std.Build) void {
     });
 
     const modules = [_]*Build.Module{
+        exe_mod,
         attempt_mod,
         colorize_mod,
         display_mod,
         input_mod,
-        exe_mod,
     };
 
     exe_mod.addImport("attempt", attempt_mod);
@@ -75,6 +75,11 @@ pub fn build(b: *std.Build) void {
     });
 
     b.installArtifact(exe);
+    const install_docs = b.addInstallDirectory(.{
+        .source_dir = exe.getEmittedDocs(),
+        .install_dir = .prefix,
+        .install_subdir = "docs",
+    });
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
@@ -95,12 +100,6 @@ pub fn build(b: *std.Build) void {
 
         test_step.dependOn(&run_unit_tests.step);
     }
-
-    const install_docs = b.addInstallDirectory(.{
-        .source_dir = exe.getEmittedDocs(),
-        .install_dir = .prefix,
-        .install_subdir = "docs",
-    });
 
     const docs_step = b.step("docs", "Copy documentation artifacts to prefix path");
     docs_step.dependOn(&install_docs.step);

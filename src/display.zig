@@ -1,3 +1,5 @@
+//! Render ASCII boxes and previous rounds.
+
 const std = @import("std");
 const io = std.io;
 const testing = std.testing;

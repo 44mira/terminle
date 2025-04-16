@@ -1,3 +1,5 @@
+//! Wordle in the terminal.
+
 const std = @import("std");
 const io = std.io;
 

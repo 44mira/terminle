@@ -1,3 +1,5 @@
+//! Read input from a `Reader`. Also uppercases strings.
+
 const std = @import("std");
 const testing = std.testing;
 const io = std.io;
