@@ -17,10 +17,14 @@ pub fn readInput(allocator: std.mem.Allocator, reader: anytype) ![:0]const u8 {
 }
 
 test "input tests" {
-    var buffer: [10]u8 = undefined;
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+
+    const allocator = arena.allocator();
+
     var bfR = io.fixedBufferStream("HELLO\n");
     const reader = bfR.reader();
 
-    const buf = try readInput(&reader, &buffer);
+    const buf = try readInput(allocator, reader);
     try testing.expectEqualStrings("HELLO", buf);
 }

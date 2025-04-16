@@ -57,10 +57,10 @@ test "display test" {
     const w = list.writer();
 
     const eval = Evaluator.new("TRUMP");
-    const attempts = [ROUND_COUNT]?Attempt{
-        (try eval.evaluate(allocator, "HUMPS")).*,
-        (try eval.evaluate(allocator, "PLUMP")).*,
-        (try eval.evaluate(allocator, "TRUMP")).*,
+    const attempts = [ROUND_COUNT]?*Attempt{
+        try eval.evaluate(allocator, "HUMPS"),
+        try eval.evaluate(allocator, "PLUMP"),
+        try eval.evaluate(allocator, "TRUMP"),
         null,
         null,
         null,
@@ -82,9 +82,9 @@ test "display test" {
         \\┗━━━━━━━━━━━━━━━━━┛
         \\
     , .{
-        try colorize(allocator, &attempts[0].?),
-        try colorize(allocator, &attempts[1].?),
-        try colorize(allocator, &attempts[2].?),
+        try colorize(allocator, attempts[0].?),
+        try colorize(allocator, attempts[1].?),
+        try colorize(allocator, attempts[2].?),
     });
 
     try display(allocator, &attempts, w);
