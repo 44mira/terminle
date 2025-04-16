@@ -39,7 +39,7 @@ pub const Evaluator = struct {
 
     /// Returns an Attempt based on an `actual` word and a `guess` word.
     /// Can error on invalid `actual` or `guess`, or if allocations fail.
-    pub fn evaluate(self: *const Evaluator, guess: [:0]const u8) !Attempt {
+    pub fn evaluate(self: *const Evaluator, allocator: Allocator, guess: [:0]const u8) !*Attempt {
         // error check
         try validateWord(EvaluateError_Actual, self.actual);
         try validateWord(EvaluateError_Guess, guess);
@@ -71,7 +71,10 @@ pub const Evaluator = struct {
             }
         }
 
-        return Attempt.new(guess, correctness);
+        const result: *Attempt = try allocator.create(Attempt);
+        result.* = Attempt.new(guess, correctness);
+
+        return result;
     }
 
     /// Validates whether a word is valid or not.
@@ -113,55 +116,63 @@ fn expectEqualAttempt(expected: *const Attempt, actual: *const Attempt) !void {
 }
 
 test "guess evaluation check" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
     var expected: Attempt = undefined;
-    var attempt: Attempt = undefined;
+    var attempt: *Attempt = undefined;
 
-    attempt = try Evaluator.new("HELLO").evaluate("HELLO");
+    attempt = try Evaluator.new("HELLO").evaluate(allocator, "HELLO");
     expected = Attempt.new("HELLO", .{.Green} ** 5);
-    try expectEqualAttempt(&expected, &attempt);
+    try expectEqualAttempt(&expected, attempt);
 
-    attempt = try Evaluator.new("HELLO").evaluate("RATTY");
+    attempt = try Evaluator.new("HELLO").evaluate(allocator, "RATTY");
     expected = Attempt.new("RATTY", .{.Gray} ** 5);
-    try expectEqualAttempt(&expected, &attempt);
+    try expectEqualAttempt(&expected, attempt);
 
-    attempt = try Evaluator.new("BOATS").evaluate("TAOSB");
+    attempt = try Evaluator.new("BOATS").evaluate(allocator, "TAOSB");
     expected = Attempt.new("TAOSB", .{.Yellow} ** 5);
-    try expectEqualAttempt(&expected, &attempt);
+    try expectEqualAttempt(&expected, attempt);
 
-    attempt = try Evaluator.new("SILLY").evaluate("LILLY");
+    attempt = try Evaluator.new("SILLY").evaluate(allocator, "LILLY");
     expected = Attempt.new("LILLY", .{.Gray} ++ .{.Green} ** 4);
-    try expectEqualAttempt(&expected, &attempt);
+    try expectEqualAttempt(&expected, attempt);
 }
 
 test "error cases" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
     try testing.expectError(
         EvaluateError_Actual.InvalidLength,
-        Evaluator.new("invalid").evaluate("irrelevant"),
+        Evaluator.new("invalid").evaluate(allocator, "irrelevant"),
     );
 
     try testing.expectError(
         EvaluateError_Actual.NonAlphabetic,
-        Evaluator.new("12345").evaluate("irrelevant"),
+        Evaluator.new("12345").evaluate(allocator, "irrelevant"),
     );
 
     try testing.expectError(
         EvaluateError_Actual.IsLowercase,
-        Evaluator.new("hello").evaluate("irrelevant"),
+        Evaluator.new("hello").evaluate(allocator, "irrelevant"),
     );
 
     const eval = Evaluator.new("HELLO");
     try testing.expectError(
         EvaluateError_Guess.IsLowercase,
-        eval.evaluate("hello"),
+        eval.evaluate(allocator, "hello"),
     );
 
     try testing.expectError(
         EvaluateError_Guess.InvalidLength,
-        eval.evaluate("helloo"),
+        eval.evaluate(allocator, "helloo"),
     );
 
     try testing.expectError(
         EvaluateError_Guess.NonAlphabetic,
-        eval.evaluate("HI2U2"),
+        eval.evaluate(allocator, "HI2U2"),
     );
 }

@@ -4,10 +4,16 @@ const io = std.io;
 
 const attempt = @import("attempt");
 
-pub fn readInput(reader: anytype, buffer: []u8) ![]const u8 {
-    const line = (try reader.readUntilDelimiterOrEof(buffer, '\n')).?;
+pub fn readInput(allocator: std.mem.Allocator, reader: anytype) ![:0]const u8 {
+    const line = (try reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 4096)).?;
 
-    return line;
+    for (line) |*c| {
+        if (std.ascii.isLower(c.*)) {
+            c.* = std.ascii.toUpper(c.*);
+        }
+    }
+
+    return @ptrCast(line);
 }
 
 test "input tests" {

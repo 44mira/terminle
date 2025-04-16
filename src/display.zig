@@ -16,7 +16,7 @@ pub const ROUND_COUNT = 6;
 /// empty rows.
 ///
 /// `writer` is expected to be of some `io.Writer` type.
-pub fn display(allocator: Allocator, attempts: []const ?Attempt, writer: anytype) !void {
+pub fn display(allocator: Allocator, attempts: []const ?*Attempt, writer: anytype) !void {
     if (!@hasDecl(@TypeOf(writer), "write") or !@hasDecl(@TypeOf(writer), "print")) {
         return DisplayError.InvalidWriter;
     }
@@ -25,7 +25,7 @@ pub fn display(allocator: Allocator, attempts: []const ?Attempt, writer: anytype
 
     for (attempts, 1..) |a, i| {
         const round = if (a) |attempt|
-            try colorize(allocator, &attempt)
+            try colorize(allocator, attempt)
         else
             " " ** 15;
         try writer.print("┃ {s} ┃\n", .{round});
@@ -58,9 +58,9 @@ test "display test" {
 
     const eval = Evaluator.new("TRUMP");
     const attempts = [ROUND_COUNT]?Attempt{
-        try eval.evaluate("HUMPS"),
-        try eval.evaluate("PLUMP"),
-        try eval.evaluate("TRUMP"),
+        (try eval.evaluate(allocator, "HUMPS")).*,
+        (try eval.evaluate(allocator, "PLUMP")).*,
+        (try eval.evaluate(allocator, "TRUMP")).*,
         null,
         null,
         null,
