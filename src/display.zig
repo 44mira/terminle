@@ -36,6 +36,7 @@ pub fn display(allocator: Allocator, attempts: []const ?*Attempt, writer: anytyp
     try writer.writeAll("┗" ++ "━" ** 17 ++ "┛\n");
 }
 
+/// Displays the input box and places the cursor in the appropriate spot.
 pub fn displayInputBox(writer: anytype, bufW: anytype) !void {
     const bar = "═" ++ "━" ** 5 ++ "─" ** 4 ++ "┄" ** 3 ++ "┈" ** 4 ++ "\n";
 

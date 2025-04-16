@@ -4,6 +4,7 @@ const io = std.io;
 
 const attempt = @import("attempt");
 
+/// Reads the user input and uppercases.
 pub fn readInput(allocator: std.mem.Allocator, reader: anytype) ![:0]const u8 {
     const line = (try reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 4096)).?;
 
