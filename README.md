@@ -8,7 +8,9 @@ This was made as a project to practice [`zig`](https://ziglang.org/) with. So mo
 
 ## Building
 
-Currently terminle doesn't ship out its binaries (I might get on that if there's demand) but here's how you build it from source:
+~Currently terminle doesn't ship out its binaries (I might get on that if there's demand) but here's how you build it from source~
+
+Here's how to build it from source:
 
 > [!NOTE]
 > This was made with Zig version `0.14.0`. As the language is not currently stable, it might be in your best interest to build with that version.
